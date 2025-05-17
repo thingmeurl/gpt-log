@@ -1,24 +1,38 @@
-from datetime import datetime
 import os
+from datetime import datetime
+import subprocess
 
-# 保存先ディレクトリの指定（環境に合わせて絶対パス）
-save_dir = r"D:\Users\admin\Documents\gpt\log"
+def git_commit_and_push(file_path: str, message: str):
+    # Gitルート（gptフォルダ）を基準にする
+    repo_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    subprocess.run(["git", "add", file_path], cwd=repo_dir)
+    subprocess.run(["git", "commit", "-m", message], cwd=repo_dir)
+    subprocess.run(["git", "push"], cwd=repo_dir)
 
-# フォルダがなければ作成
-os.makedirs(save_dir, exist_ok=True)
+def save_markdown_log(summary_text: str):
+    today = datetime.now().strftime("%Y-%m-%d")
+    script_dir = os.path.dirname(__file__)
+    log_dir = os.path.abspath(os.path.join(script_dir, "../log"))
+    os.makedirs(log_dir, exist_ok=True)
 
-# ファイル名（日付ベース）
-today = datetime.today().strftime("%Y-%m-%d")
-filename = f"{today}.md"
+    log_path = os.path.join(log_dir, f"{today}.md")
 
-# ファイルパス（絶対パスに変更）
-file_path = os.path.join(save_dir, filename)
+    with open(log_path, "w", encoding="utf-8") as f:
+        f.write(summary_text)
 
-# 仮の中身
-content = f"# 🗓️ {today} ログ\n\n## 🌧️ 天気・気分\n- 雨模様のスタート\n\n## 💬 雑感\n- 最小単位から始める"
+    git_commit_and_push(log_path, f"{today} ログ追加")
 
-# ファイル保存
-with open(file_path, "w", encoding="utf-8") as f:
-    f.write(content)
+def main():
+    script_dir = os.path.dirname(__file__)
+    summary_path = os.path.join(script_dir, "summary.txt")
+    if not os.path.exists(summary_path):
+        print("⚠️ summary.txt が見つかりません")
+        return
 
-print(f"{file_path} を作成しました。")
+    with open(summary_path, "r", encoding="utf-8") as f:
+        summary = f.read()
+
+    save_markdown_log(summary)
+
+if __name__ == "__main__":
+    main()
