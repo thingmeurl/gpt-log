@@ -1,0 +1,6 @@
+__pycache__/
+.env
+summary.txt
+raw_chat.txt
+test_env.py
+generate_and_log.py
